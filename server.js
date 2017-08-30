@@ -1,16 +1,13 @@
 const express = require("express")
 const mustacheExpress = require("mustache-express")
 const bodyParser = require("body-parser")
-const mongoose = require("mongoose")
 const User = require('./models/user')
 const passport = require("passport")
 const LocalStrategy = require("passport-local").Strategy
 const session = require("express-session")
 
+const models = require("./models")
 
-mongoose.connect("mongodb://localhost/sampleApp", () => {
-    console.log("connected to the mongod!!!!")
-});
 
 const app = express()
 
@@ -34,8 +31,9 @@ passport.use('signup', new LocalStrategy((username, password, next) => {
         password: password
     }
     // create a user
-    User
-        .create(data)
+    models.User
+        .build(data)
+        .save()
         .then(user => {
             // save to database
             return next(null, user);
@@ -49,12 +47,13 @@ passport.serializeUser((user, next) => {
     next(null, user.id)
 })
 
-passport.deserializeUser(function(id, next) {
-    //MW
-    User.findById(id, function(err, user) {
-      next(err, user)
-    })
-  })
+passport.deserializeUser(function (id, next) {
+   models.User.findOne({where: {
+       id:id
+   }}).then(user => {
+       next(null, user);
+   })
+})
 
 
 app.use(session({
@@ -102,14 +101,14 @@ app.get('/logout', (req, res) => {
 // restrict users!!!
 
 const restrictAccess = (req, res, next) => {
-    if (req.user){
+    if (req.user) {
         return next()
-    } else{
+    } else {
         return res.redirect('/')
     }
 }
 
-app.get('/restricted', restrictAccess , (req, res) => {
+app.get('/restricted', restrictAccess, (req, res) => {
     res.render("restricted", req.user)
 })
 

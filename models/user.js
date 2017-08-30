@@ -7,9 +7,6 @@ const userSchema = new mongoose.Schema({
 });
 
 
-const User = mongoose.model('User', userSchema);
-
-
 userSchema.virtual('password')
     .get(function () { return null })
     .set(function (value) {
@@ -35,4 +32,4 @@ userSchema.statics.authenticate = function (username, password, done) {
     })
 };
 
-module.exports = User;
+module.exports = mongoose.model('User', userSchema);

@@ -81,18 +81,24 @@ app.get('/', (req, res) => {
     res.render("home")
 })
 
-app.post('/', (req, res) => {
-    let data = {
-        username: req.body.username,
-        password: req.body.password
-    }
-    res.render("nothome", data);
-})
+app.post('/', passport.authenticate("login", {
+    successRedirect: "/restricted",
+    failureRedirect: "/"
+}))
 
 app.post('/signup', passport.authenticate("signup", {
     successRedirect: "/restricted",
     failureRedirect: "/"
 }))
+
+app.get('/logout', (req, res) => {
+    // clear the sessions
+    req.session.destroy();
+    // logout of passport
+    req.logOut();
+    res.redirect('/');
+})
+
 
 
 app.get('/restricted', (req, res) => {

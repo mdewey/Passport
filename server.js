@@ -99,9 +99,17 @@ app.get('/logout', (req, res) => {
     res.redirect('/');
 })
 
+// restrict users!!!
 
+const restrictAccess = (req, res, next) => {
+    if (req.user){
+        return next()
+    } else{
+        return res.redirect('/')
+    }
+}
 
-app.get('/restricted', (req, res) => {
+app.get('/restricted', restrictAccess , (req, res) => {
     res.render("restricted", req.user)
 })
 

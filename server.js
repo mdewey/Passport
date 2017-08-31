@@ -5,7 +5,7 @@ const User = require('./models/user')
 const passport = require("passport")
 const LocalStrategy = require("passport-local").Strategy
 const session = require("express-session")
-
+const bcrypt = require('bcryptjs')
 const models = require("./models")
 
 
@@ -16,9 +16,9 @@ passport.use("login", new LocalStrategy((username, password, next) => {
     models.User
         .findOne({ where: { username } })
         .then(user => {
-            console.log({user}, user.password, )
+            
             // check againt the password
-            if (user.password === password) {
+            if (bcrypt.compareSync(password, user.passwordHash)) {
                 return next(null, {username:user.username, id: user.id})
             } else {
                 return next(null, false, { message: "Noooooope" })

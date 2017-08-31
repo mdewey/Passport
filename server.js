@@ -13,16 +13,20 @@ const app = express()
 
 // define how we auth a user
 passport.use("login", new LocalStrategy((username, password, next) => {
-    User.authenticate(username, password, (err, user) => {
-        if (err) {
+    models.User
+        .findOne({ where: { username } })
+        .then(user => {
+            console.log({user}, user.password, )
+            // check againt the password
+            if (user.password === password) {
+                return next(null, {username:user.username, id: user.id})
+            } else {
+                return next(null, false, { message: "Noooooope" })
+            }
+        })
+        .catch(err => {
             return next(err)
-        }
-        if (user) {
-            return next(null, user)
-        } else {
-            return next(null, false, { message: "No user found" })
-        }
-    })
+        })
 }))
 
 passport.use('signup', new LocalStrategy((username, password, next) => {
@@ -48,11 +52,13 @@ passport.serializeUser((user, next) => {
 })
 
 passport.deserializeUser(function (id, next) {
-   models.User.findOne({where: {
-       id:id
-   }}).then(user => {
-       next(null, user);
-   })
+    models.User.findOne({
+        where: {
+            id: id
+        }
+    }).then(user => {
+        next(null, {username:user.username, id: user.id});
+    })
 })
 
 
@@ -109,6 +115,7 @@ const restrictAccess = (req, res, next) => {
 }
 
 app.get('/restricted', restrictAccess, (req, res) => {
+    console.log("a", req.user)
     res.render("restricted", req.user)
 })
 
